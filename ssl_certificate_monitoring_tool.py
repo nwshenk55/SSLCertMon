@@ -45,10 +45,7 @@ def main():
 
     logging.info("There are currently %s certificates in the database" % cert_db.count())
 
-    sha1_certs_in_db = cert_db.all_sha1s()
-
-    for sha1 in sha1_certs_in_db:
-
+    for sha1 in cert_db.all_sha1s():
         previously_observed_ips_for_sha1 = cert_db.previously_observed_ips_for_cert(sha1)
 
         logging.info("Querying Censys for any IPs utilizing certificate: %s" % sha1)
@@ -78,8 +75,7 @@ def main():
 
         time.sleep(5)  # Required so I don't exceed my API quota
 
-    count_of_all_observed_ips = len(cert_db.all_observed_ips())
-    logging.info("Total number of IPs ever observed by this script: %s" % count_of_all_observed_ips)
+    logging.info("Total number of IPs ever observed by this script: %s" % len(cert_db.all_observed_ips()))
 
     all_tracked_APTs = cert_db.all_tracked_APTs()
 
