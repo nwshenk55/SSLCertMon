@@ -4,6 +4,7 @@ Track APT usage of SSL Certificates via Censys IO
 
 Sample record from the database created by this tool:
 
+```
 {'APT': 'TEST',
  'All_Observed_IPs': {'179-43-128-218': {'Country_Code': 'CH',
                                          'Country_Name': 'Switzerland',
@@ -73,3 +74,5 @@ Sample record from the database created by this tool:
  'SHA_1': 'a1833c32d5f61d6ef9d1bb0133585112069d770e',
  'Source': None,
  '_id': ObjectId('595d877749dbea77b9243444')}
+
+```
