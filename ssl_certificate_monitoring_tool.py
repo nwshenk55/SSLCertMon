@@ -268,8 +268,7 @@ class SSL_Certificate_Database(object):
         all_certs = self.all_cert_objects()
         with open(EXPORT_FILE, 'w') as export_file:
             for cert in all_certs:
-                export_file.write(str(cert))
-                export_file.write('\n')
+                export_file.write(str(cert) + '\n')
         return
 
     def all_observed_ips(self):
