@@ -1,6 +1,22 @@
 # SSLCertMon
-Track APT usage of SSL Certificates via Censys IO
+Track suspected APT infrastructure via SSL Certificate usage monitoring with Censys IO
 
+### Usage:
+1. Import SSL Certs to be tracked into the database
+2. Run this script 1x/day to check for IPs that are newly hosting the monitored SSL Certificates
+
+### Notes:
+This tool is simply the core framework one would need to identify new suspected APT CNE infrastruture
+based on SSL Cert Usage on a daily basis. Ideally, you'd updated it to meet your specific needs.
+
+### Requirements:
+Requires a FREE Censys IO API Key - signup here: https://www.censys.io/api
+
+### Dependencies:
+1. PyMongo
+2. Censys Python (see https://github.com/censys/censys-python). Get it via 'pip install censys'
+
+------------
 
 Sample record from the database created by this tool:
 
