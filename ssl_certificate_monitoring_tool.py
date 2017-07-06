@@ -5,16 +5,16 @@ import censys.ipv4
 from pymongo import MongoClient, ReturnDocument
 
 FIELDNAME_HASH = "SHA_1"
-FIELDNAME_CERT_FRIENDLY_NAME = "Friendly_Name"
-FIELDNAME_SOURCE = "Source"
+FIELDNAME_CERT_FRIENDLY_NAME = "friendly_name"
+FIELDNAME_SOURCE = "source"
 FIELDNAME_APT = "APT"
-FIELDNAME_DATE_CERT_WAS_LAST_OBSERVED = "Date_Last_Observed_On_Any_IP"
-FIELDNAME_PREVIOUSLY_OBSERVED_IPS = "All_Observed_IPs"
+FIELDNAME_DATE_CERT_WAS_LAST_OBSERVED = "date_last_observed_on_any_ip"  # maybe drop the on_any_ip
+FIELDNAME_PREVIOUSLY_OBSERVED_IPS = "all_observed_ips"
 FIELDNAME_IP_ADDR = "IP"
-FIELDNAME_COUNTRY_CODE = "Country_Code"
-FIELDNAME_COUNTRY_NAME = "Country_Name"
-FIELDNAME_PORTS_PROTOCOLS = "Ports_And_Protocols"
-FIELDNAME_DATE_SEEN = "Date_Seen"
+FIELDNAME_COUNTRY_CODE = "country_code"
+FIELDNAME_COUNTRY_NAME = "country_name"
+FIELDNAME_PORTS_PROTOCOLS = "ports_and_protocols"
+FIELDNAME_DATE_SEEN = "date_seen"
 
 EXPORT_FILE = "monitored_certificates.txt"
 IMPORT_FILE = "import_test.csv"
