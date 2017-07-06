@@ -38,11 +38,9 @@ CENSYS_SEARCH_ENGINE = censys.ipv4.CensysIPv4(API_UID, API_KEY)
 
 
 def main():
-
     logging.info("******** CERT MONITOR IS STARTING! **********")
 
     cert_db = SSL_Certificate_Database()
-
     cert_db.import_new_certs_from_csv(csv_path=IMPORT_FILE)
 
     logging.info("There are currently %s certificates in the database" % cert_db.count())
@@ -51,24 +49,19 @@ def main():
         previously_observed_ips_for_sha1 = cert_db.previously_observed_ips_for_cert(sha1)
 
         logging.info("Querying Censys for any IPs utilizing certificate: %s" % sha1)
-
         for search_result in CENSYS_SEARCH_ENGINE.search(sha1, FIELDS_TO_RETURN_FROM_CENSYS):
-
             if not previously_observed_ips_for_sha1:
                 cert_db.add_ip_to_cert(sha1,
                                        search_result['ip'],
                                        search_result['location.country_code'],
                                        search_result['location.country'],
                                        search_result['protocols'])
-
             elif search_result['ip'] in previously_observed_ips_for_sha1:
                     logging.info("Censys observed IP %s utilizing cert %s. This is a previously known association." % (search_result['ip'], sha1))
                     cert_db.update_the_date_an_ip_was_last_seen(sha1, search_result['ip'])
-
             else:
                 logging.info("Censys observed IP %s utilizing cert %s. This is a new association." % (search_result['ip'],
                                                                                                       sha1))
-
                 cert_db.add_ip_to_cert(sha1,
                                        search_result['ip'],
                                        search_result['location.country_code'],
