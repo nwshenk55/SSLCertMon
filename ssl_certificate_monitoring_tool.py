@@ -4,6 +4,8 @@ import time
 import censys.ipv4
 from pymongo import MongoClient, ReturnDocument
 
+# Nice - using spaces instead of tabs!
+
 FIELDNAME_HASH = "SHA_1"
 FIELDNAME_CERT_FRIENDLY_NAME = "friendly_name"
 FIELDNAME_SOURCE = "source"
@@ -73,7 +75,7 @@ def main():
                                        search_result['location.country'],
                                        search_result['protocols'])
 
-        time.sleep(5)  # Required so I don't exceed my API quota
+        time.sleep(5)  # Required so I don't exceed my API quota #lol good example of a needed comment
 
     logging.info("Total number of IPs ever observed by this script: %s" % len(cert_db.all_observed_ips()))
 
@@ -87,7 +89,7 @@ def main():
                                                                                 apt,
                                                                                 certs_associated_with_apt))
 
-    # cert_db.export_all_certs_to_file()
+    # cert_db.export_all_certs_to_file()    #??
 
     logging.info("******** CERT MONITOR IS FINISHED! **********")
 
