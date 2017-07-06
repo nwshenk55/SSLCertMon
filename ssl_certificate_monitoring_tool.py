@@ -136,15 +136,15 @@ class SSL_Certificate_Database(object):
             return True
 
     def all_cert_objects(self):
-        list_of_monitored_certs = []
-        for cert in self.ssl_cert_collection.find():
-            list_of_monitored_certs.append(cert)
-        return list_of_monitored_certs
+        return self.ssl_cert_collection.find() # I don't think this needs to return an array but if you must - add .toArray()
+        # read about the thing that find() returns: cursor https://docs.mongodb.com/manual/tutorial/iterate-a-cursor/#read-operations-cursors
+        # and how to iterate over them. I am not sure if `for stuff in self.ssl_cert_collection.find()` works 
 
     def all_sha1s(self):
-        list_of_monitored_certs_objects = self.all_cert_objects()
-        monitored_certs_by_hash = [cert_object[FIELDNAME_HASH] for cert_object in list_of_monitored_certs_objects]
-        return monitored_certs_by_hash
+        # this can be done faster on the db level. 
+        # https://stackoverflow.com/questions/25589113/how-to-select-a-single-field-in-mongodb
+        # https://docs.mongodb.com/manual/reference/method/db.collection.find/
+        return self.ssl_cert_collection.find({}, {FIELDNAME_HASH:1, _id:0})
 
     def previously_observed_ips_for_cert(self, cert_hash):
         cert_object = self.get_cert_object(cert_hash)
@@ -302,12 +302,9 @@ class SSL_Certificate_Database(object):
         return all_certs_for_apt
 
     def count(self):
-        """
-        Get a count of the number of certificates being tracked
-        :return: 
-        """
-        cert_count = len(self.all_sha1s())
-        return cert_count
+        # its faster to do this on a db level https://docs.mongodb.com/manual/reference/method/db.collection.count/
+        # I am not sure this method is really needed
+        return self.ssl_cert_collection.count()
 
 if __name__ == "__main__":
     main()
