@@ -4,17 +4,19 @@ import time
 import censys.ipv4
 from pymongo import MongoClient, ReturnDocument
 
+# Nice - using spaces instead of tabs!
+
 FIELDNAME_HASH = "SHA_1"
-FIELDNAME_CERT_FRIENDLY_NAME = "Friendly_Name"
-FIELDNAME_SOURCE = "Source"
+FIELDNAME_CERT_FRIENDLY_NAME = "friendly_name"
+FIELDNAME_SOURCE = "source"
 FIELDNAME_APT = "APT"
-FIELDNAME_DATE_CERT_WAS_LAST_OBSERVED = "Date_Last_Observed_On_Any_IP"
-FIELDNAME_PREVIOUSLY_OBSERVED_IPS = "All_Observed_IPs"
+FIELDNAME_DATE_CERT_WAS_LAST_OBSERVED = "date_last_observed_on_any_ip"  # maybe drop the on_any_ip
+FIELDNAME_PREVIOUSLY_OBSERVED_IPS = "all_observed_ips"
 FIELDNAME_IP_ADDR = "IP"
-FIELDNAME_COUNTRY_CODE = "Country_Code"
-FIELDNAME_COUNTRY_NAME = "Country_Name"
-FIELDNAME_PORTS_PROTOCOLS = "Ports_And_Protocols"
-FIELDNAME_DATE_SEEN = "Date_Seen"
+FIELDNAME_COUNTRY_CODE = "country_code"
+FIELDNAME_COUNTRY_NAME = "country_name"
+FIELDNAME_PORTS_PROTOCOLS = "ports_and_protocols"
+FIELDNAME_DATE_SEEN = "date_seen"
 
 EXPORT_FILE = "monitored_certificates.txt"
 IMPORT_FILE = "import_test.csv"
@@ -36,50 +38,39 @@ CENSYS_SEARCH_ENGINE = censys.ipv4.CensysIPv4(API_UID, API_KEY)
 
 
 def main():
-
     logging.info("******** CERT MONITOR IS STARTING! **********")
 
     cert_db = SSL_Certificate_Database()
-
     cert_db.import_new_certs_from_csv(csv_path=IMPORT_FILE)
 
     logging.info("There are currently %s certificates in the database" % cert_db.count())
 
-    sha1_certs_in_db = cert_db.all_sha1s()
-
-    for sha1 in sha1_certs_in_db:
-
+    for sha1 in cert_db.all_sha1s():
         previously_observed_ips_for_sha1 = cert_db.previously_observed_ips_for_cert(sha1)
 
         logging.info("Querying Censys for any IPs utilizing certificate: %s" % sha1)
-
         for search_result in CENSYS_SEARCH_ENGINE.search(sha1, FIELDS_TO_RETURN_FROM_CENSYS):
-
             if not previously_observed_ips_for_sha1:
                 cert_db.add_ip_to_cert(sha1,
                                        search_result['ip'],
                                        search_result['location.country_code'],
                                        search_result['location.country'],
                                        search_result['protocols'])
-
             elif search_result['ip'] in previously_observed_ips_for_sha1:
                     logging.info("Censys observed IP %s utilizing cert %s. This is a previously known association." % (search_result['ip'], sha1))
                     cert_db.update_the_date_an_ip_was_last_seen(sha1, search_result['ip'])
-
             else:
                 logging.info("Censys observed IP %s utilizing cert %s. This is a new association." % (search_result['ip'],
                                                                                                       sha1))
-
                 cert_db.add_ip_to_cert(sha1,
                                        search_result['ip'],
                                        search_result['location.country_code'],
                                        search_result['location.country'],
                                        search_result['protocols'])
 
-        time.sleep(5)  # Required so I don't exceed my API quota
+        time.sleep(5)  # Required so I don't exceed my API quota #lol good example of a needed comment
 
-    count_of_all_observed_ips = len(cert_db.all_observed_ips())
-    logging.info("Total number of IPs ever observed by this script: %s" % count_of_all_observed_ips)
+    logging.info("Total number of IPs ever observed by this script: %s" % len(cert_db.all_observed_ips()))
 
     all_tracked_APTs = cert_db.all_tracked_APTs()
 
@@ -91,7 +82,7 @@ def main():
                                                                                 apt,
                                                                                 certs_associated_with_apt))
 
-    # cert_db.export_all_certs_to_file()
+    # cert_db.export_all_certs_to_file()    #??
 
     logging.info("******** CERT MONITOR IS FINISHED! **********")
 
@@ -145,15 +136,15 @@ class SSL_Certificate_Database(object):
             return True
 
     def all_cert_objects(self):
-        list_of_monitored_certs = []
-        for cert in self.ssl_cert_collection.find():
-            list_of_monitored_certs.append(cert)
-        return list_of_monitored_certs
+        return self.ssl_cert_collection.find() # I don't think this needs to return an array but if you must - add .toArray()
+        # read about the thing that find() returns: cursor https://docs.mongodb.com/manual/tutorial/iterate-a-cursor/#read-operations-cursors
+        # and how to iterate over them. I am not sure if `for stuff in self.ssl_cert_collection.find()` works 
 
     def all_sha1s(self):
-        list_of_monitored_certs_objects = self.all_cert_objects()
-        monitored_certs_by_hash = [cert_object[FIELDNAME_HASH] for cert_object in list_of_monitored_certs_objects]
-        return monitored_certs_by_hash
+        # this can be done faster on the db level. 
+        # https://stackoverflow.com/questions/25589113/how-to-select-a-single-field-in-mongodb
+        # https://docs.mongodb.com/manual/reference/method/db.collection.find/
+        return self.ssl_cert_collection.find({}, {FIELDNAME_HASH:1, _id:0})
 
     def previously_observed_ips_for_cert(self, cert_hash):
         cert_object = self.get_cert_object(cert_hash)
@@ -277,8 +268,7 @@ class SSL_Certificate_Database(object):
         all_certs = self.all_cert_objects()
         with open(EXPORT_FILE, 'w') as export_file:
             for cert in all_certs:
-                export_file.write(str(cert))
-                export_file.write('\n')
+                export_file.write(str(cert) + '\n')
         return
 
     def all_observed_ips(self):
@@ -311,12 +301,9 @@ class SSL_Certificate_Database(object):
         return all_certs_for_apt
 
     def count(self):
-        """
-        Get a count of the number of certificates being tracked
-        :return: 
-        """
-        cert_count = len(self.all_sha1s())
-        return cert_count
+        # its faster to do this on a db level https://docs.mongodb.com/manual/reference/method/db.collection.count/
+        # I am not sure this method is really needed
+        return self.ssl_cert_collection.count()
 
 if __name__ == "__main__":
     main()
